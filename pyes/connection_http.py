@@ -100,7 +100,7 @@ class Connection(object):
             body=request.body,
             headers=headers,
             timeout=self._timeout,
-            retry=False
+            retries=False
         )
 
         retry = 0
