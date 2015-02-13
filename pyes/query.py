@@ -1126,7 +1126,7 @@ class MultiMatchQuery(Query):
     results = conn.search(q)
     """
     _internal_name = "multi_match"
-    _valid_types = ['boolean', "phrase", "phrase_prefix"]
+    _valid_types = ['boolean', "phrase", "phrase_prefix", "best_fields", "most_fields", "cross_fields"]
     _valid_operators = ['or', "and"]
 
     def __init__(self, fields, text, type="boolean", slop=0, fuzziness=None,
