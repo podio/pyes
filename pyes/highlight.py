@@ -22,7 +22,7 @@ class HighLighter(object):
     """
 
     def __init__(self, pre_tags=None, post_tags=None, fields=None, fragment_size=None, number_of_fragments=None,
-                 fragment_offset=None, encoder=None):
+                 fragment_offset=None, encoder=None, order=None):
         self.pre_tags = pre_tags
         self.post_tags = post_tags
         self.fields = fields or {}
@@ -30,6 +30,7 @@ class HighLighter(object):
         self.number_of_fragments = number_of_fragments
         self.fragment_offset = fragment_offset
         self.encoder = encoder
+        self.order = order
 
     def add_field(self, name, fragment_size=150, number_of_fragments=3, fragment_offset=None, order="score", type=None):
         """
@@ -44,7 +45,8 @@ class HighLighter(object):
             data['fragment_offset'] = fragment_offset
         if type is not None:
             data['type'] = type
-        data['order'] = order
+        if order is not None:
+            data['order'] = order
         self.fields[name] = data
 
     def serialize(self):
@@ -59,6 +61,8 @@ class HighLighter(object):
             res["number_of_fragments"] = self.number_of_fragments
         if self.fragment_offset:
             res["fragment_offset"] = self.fragment_offset
+        if self.order is not None:
+            res['order'] = self.order
         if self.encoder:
             res["encoder"] = self.encoder
         if self.fields:
