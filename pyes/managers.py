@@ -38,8 +38,12 @@ class Indices(object):
         :raise IndexMissingException if the alias does not exist.
 
         """
-        status = self.status([alias])
-        return status['indices'].keys()
+        aliases = self.aliases([alias]).keys()
+
+        if len(aliases) == 0:
+            raise IndexMissingException("no index for alias")
+        else:
+            return aliases
 
     def change_aliases(self, commands):
         """
@@ -222,35 +226,32 @@ class Indices(object):
 
         """
         state = self.conn.cluster.state()
-        status = self.status()
         result = {}
-        indices_status = status['indices']
+        indices = self.aliases().keys()
         indices_metadata = state['metadata']['indices']
-        for index in sorted(indices_status.keys()):
-            info = indices_status[index]
-            try:
-                num_docs = info['docs']['num_docs']
-            except KeyError:
-                num_docs = 0
-            result[index] = dict(num_docs=num_docs)
+        for index in sorted(indices):
+            result[index] = {}
 
             if not include_aliases:
                 continue
+
             try:
                 metadata = indices_metadata[index]
             except KeyError:
                 continue
+
             for alias in metadata.get('aliases', []):
                 try:
                     alias_obj = result[alias]
                 except KeyError:
                     alias_obj = {}
                     result[alias] = alias_obj
-                alias_obj['num_docs'] = alias_obj.get('num_docs', 0) + num_docs
+
                 try:
                     alias_obj['alias_for'].append(index)
                 except KeyError:
                     alias_obj['alias_for'] = [index]
+
         return result
 
     def get_closed_indices(self):
