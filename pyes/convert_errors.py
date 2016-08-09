@@ -31,6 +31,12 @@ for name in (
     )
 )
 
+exceptions_by_type = {
+    "index_not_found_exception": exceptions.IndexMissingException,
+    "mapper_parsing_exception": exceptions.MapperParsingException,
+    "illegal_argument_exception": exceptions.ElasticSearchIllegalArgumentException,
+}
+
 # Second, patterns for exceptions where the message is just the error
 # description, and doesn't contain an error name.  These patterns are matched
 # at the end of the exception.
@@ -67,28 +73,37 @@ def raise_if_error(status, result, request=None):
             result, request)
 
     error = result['error']
-    if '; nested: ' in error:
-        error_list = error.split('; nested: ')
-        error = error_list[len(error_list) - 1]
 
-    bits = error.split('[', 1)
-    if len(bits) == 2:
-        excClass = exceptions_by_name.get(bits[0], None)
+    if isinstance(error, dict):
+        error_type = error.get("type")
+        excClass = exceptions_by_type.get(error_type)
         if excClass is not None:
-            msg = bits[1]
-            if msg.endswith(']'):
-                msg = msg[:-1]
-            '''
-            if request:
-                msg += ' (' + str(request) + ')'
-            '''
-            raise excClass(msg, status, result, request)
+            raise excClass(error, status, result, request)
 
-    for pattern, excClass in list(exception_patterns_trailing.items()):
-        if not error.endswith(pattern):
-            continue
-            # For these exceptions, the returned value is the whole descriptive
-        # message.
-        raise excClass(error, status, result, request)
+        raise exceptions.ElasticSearchException(error, status, result, request)
+    else:
+        if '; nested: ' in error:
+            error_list = error.split('; nested: ')
+            error = error_list[len(error_list) - 1]
 
-    raise exceptions.ElasticSearchException(error, status, result, request)
+        bits = error.split('[', 1)
+        if len(bits) == 2:
+            excClass = exceptions_by_name.get(bits[0], None)
+            if excClass is not None:
+                msg = bits[1]
+                if msg.endswith(']'):
+                    msg = msg[:-1]
+                '''
+                if request:
+                    msg += ' (' + str(request) + ')'
+                '''
+                raise excClass(msg, status, result, request)
+
+        for pattern, excClass in list(exception_patterns_trailing.items()):
+            if not error.endswith(pattern):
+                continue
+                # For these exceptions, the returned value is the whole descriptive
+            # message.
+            raise excClass(error, status, result, request)
+
+        raise exceptions.ElasticSearchException(error, status, result, request)
