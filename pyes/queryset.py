@@ -198,6 +198,9 @@ class QuerySet(object):
             return False
         return True
 
+    def __bool__(self):
+        return self.__nonzero__()
+
 #    def __contains__(self, val):
 #        # The 'in' operator works without this method, due to __iter__. This
 #        # implementation exists only to shortcut the creation of Model

@@ -186,6 +186,9 @@ class ListBulker(BaseBulker):
         # unsaved bulk data left over.
         return not not self.bulk_data
 
+    def __bool__(self):
+        return self.__nonzero__()
+
     def add(self, content):
         with self.bulk_lock:
             self.bulk_data.append(content)
