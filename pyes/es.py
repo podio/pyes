@@ -118,7 +118,7 @@ class ESJsonEncoder(json.JSONEncoder):
             return list(value)
         # For Python 3.x str is required for json serialization
         elif isinstance(value, bytes):
-            value = value.decode("utf-8")
+            return value.decode("utf-8")
         # raise TypeError
         return super(ESJsonEncoder, self).default(value)
 
