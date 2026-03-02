@@ -19,3 +19,4 @@ tests/.noseids
 # IDEs
 .idea
 .project
+.DS_Store
